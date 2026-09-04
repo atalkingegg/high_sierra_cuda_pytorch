@@ -1,0 +1,22 @@
+## global path and other variables here.
+
+TARG_INST_DIR=/opt/tools
+
+export PATH=${TARG_INST_DIR}/bin:${PATH}
+
+## What to use to build all the parts.
+## FIRST PASS to 05_gcc
+CC="/usr/bin/gcc -std=gnu17"
+CXX="/usr/bin/g++ -std=gnu++17"
+
+## To pick up built libraries on secondary builds.
+export CPPFLAGS="-I${TARG_INST_DIR}/include"
+export LDFLAGS="-L${TARG_INST_DIR}/lib"
+export LD_LIBRARY_PATH=${TARG_INST_DIR}/lib:${TARG_INST_DIR}/lib64
+export ACLOCAL_PATH="${TARG_INST_DIR}/share/aclocal"
+
+THREADS=8
+
+export CC CXX
+
+RUN_TESTS=0

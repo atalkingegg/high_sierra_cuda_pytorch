@@ -1,0 +1,80 @@
+#!/bin/bash
+
+## just works
+#PYVER=3.8
+## requires patching
+#PYVER=3.12
+## ?? 3.14 breaks numpy. bad numpy. fixed, maybe. yes.
+#PYVER=3.14
+
+PYVER=3.14
+
+source 0000_env
+
+if [ -d "pytorch" ]; then
+  echo "PATH pytorch already exists, not cloning around."
+else
+  git clone https://github.com/pytorch/pytorch.git
+  cd pytorch
+  git checkout v1.8.1
+  git submodule sync
+  git submodule update --init --recursive
+
+  patch -b -z .orig third_party/pybind11/include/pybind11/cast.h < ../patch.pytorch.cast.h
+  patch -b -z .orig third_party/pybind11/include/pybind11/pybind11.h < ../patch.pytorch.pybind11.h
+  patch -b -z .orig torch/csrc/Stream.cpp < ../patch.pytorch.Stream.cpp
+  patch -b -z .orig torch/csrc/jit/python/python_tracer.cpp < ../patch.pytorch.python_tracer.cpp
+  patch -b -z .orig torch/csrc/utils/tensor_numpy.cpp < ../patch.pytorch.tensor_numpy.cpp
+  patch -b -z .orig c10/util/BFloat16.h < ../patch.pytorch.BFloat16.h
+  ## working on 3.14.7 stuff here
+  patch -b -z .orig torch/csrc/utils/python_arg_parser.cpp < ../patch.pytorch.python_arg_parser.cpp
+  ## For Python-3.13.11, a few minor changes needed
+  patch -b -z .orig torch/csrc/autograd/python_engine.cpp < ../patch.pytorch.python_engine.cpp
+
+  cd ..
+fi
+
+cd pytorch 
+
+#rm -rf build
+
+export TORCH_CUDA_ARCH_LIST="3.0"
+export USE_CUDA=1
+export USE_NCCL=0
+export USE_DISTRIBUTED=0
+export USE_TENSORPIPE=0
+
+export USE_CUDA=1
+export CUDA_HOME=/usr/local/cuda
+export PATH="$CUDA_HOME/bin:$PATH"
+
+PY=/opt/tools/bin/python${PYVER}
+$PY -V
+
+
+$PY -m pip install --upgrade pip setuptools wheel
+#$PY -m pip install --upgrade numpy pyyaml typing_extensions future
+$PY -m pip install --upgrade pyyaml typing_extensions future
+
+## Needed on mac, was it already on linux so never came up?
+${PY} -m pip install --upgrade pyyaml
+
+## $PY -m pip install --upgrade cmake ninja
+## /opt/tools/bin/python${PYVER} -m pip uninstall -y cmake
+## /opt/tools/bin/python${PYVER} -m pip install "cmake==3.22.6" "ninja==1.11.1"
+## /opt/tools/bin/python${PYVER} -m pip install "ninja==1.11.1"
+
+$PY -m pip install -r requirements.txt
+
+export MACOSX_DEPLOYMENT_TARGET=10.13
+
+#export CC=clang
+#export CXX=clang++
+
+## This worked with python-3.8, but has issues with 3.12
+## ${PY} setup.py develop
+
+## Needed for 3.12 plus
+${PY} -m pip install -v -e . --no-build-isolation
+
+exit 0

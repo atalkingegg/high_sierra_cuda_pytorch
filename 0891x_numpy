@@ -1,0 +1,118 @@
+#!/bin/bash
+
+set -euo pipefail
+
+## Numpy for Python 3.14.x, as pip install broken
+
+## just works
+#PYVER=3.8
+## requires patching
+#PYVER=3.12
+#PYVER=3.13 
+## 3.13 works with one more patch than 3.12
+## ?? 3.14 breaks numpy. bad numpy, let's fix it!
+PYVER=3.14
+#NPVER=2.4.0
+#NPVER=2.4.4
+
+NPVER=2.4.6
+
+## This version really doesn't like XCode 10.1, missing AVX-512 intrinsic header elements,
+## and the build system tries to use them anyway, even when clearly told not to.
+## fails in x86-simd-sort, missing _kxor_mask8()
+# NPVER=2.5.2
+
+source 0000_env
+
+if [ -d "numpy" ]; then
+  echo "PATH numpy already exists, not cloning around."
+else
+  git clone https://github.com/numpy/numpy.git
+  cd numpy
+  git checkout v${NPVER}
+  git submodule sync
+  git submodule update --init --recursive
+
+  ## not needed for 2.5.2
+  patch -b -z .orig numpy/_core/src/common/npy_atomic.h < ../patch.numpy.npy_atomic.h
+ 
+  cd ..
+fi
+
+
+cd numpy
+
+pip install --upgrade pip
+
+## not needed for 2.5.2
+pip install -r requirements/setuptools_requirement.txt
+
+pip install -r requirements/build_requirements.txt
+pip install -r requirements/test_requirements.txt
+
+export MACOSX_DEPLOYMENT_TARGET=10.13
+rm -rf build
+
+PY=/opt/tools/bin/python${PYVER}
+$PY -V
+
+## New pip build install version
+
+export PIP_NO_BUILD_ISOLATION=1
+export PIP_NO_CACHE_DIR=1
+
+#export CFLAGS="$CFLAGS -DHWY_COMPILER_CLANG=1000"
+export CFLAGS="-DHWY_COMPILER_CLANG=1000"
+#export CXXFLAGS="$CXXFLAGS -DHWY_COMPILER_CLANG=1000"
+export CXXFLAGS="-DHWY_COMPILER_CLANG=1000"
+
+## With numpy 2.5.2, this fails with a missing _kxor_mask8() 
+$PY -m pip wheel . -w dist --no-deps --no-build-isolation -v \
+  -Csetup-args=--prefix=/opt/tools \
+  -Csetup-args=-Dblas=accelerate \
+  -Csetup-args=-Dlapack=accelerate \
+  -Csetup-args=-Dcpu-dispatch="max -X86_V4"
+
+## Trying this before rolling back to earlier numpy ver. - NOPE. same issue.
+#$PY -m pip wheel . -w dist --no-deps --no-build-isolation -v \
+#  -Csetup-args=--prefix=/opt/tools \
+#  -Csetup-args=-Dblas=accelerate \
+#  -Csetup-args=-Dlapack=accelerate \
+#  -Csetup-args=-Dcpu-baseline="native" \
+#  -Csetup-args=-Dcpu-dispatch="none" 
+
+
+$PY -m pip install --no-deps --force-reinstall dist/numpy-*.whl
+
+## And show results
+$PY -m pip show numpy
+
+################
+exit 0
+################
+
+## Old meson build way, works but doesn't register pip stuffs
+
+# $PY vendored-meson/meson/meson.py setup --help
+#exit 0
+
+export CFLAGS="$CFLAGS -DHWY_COMPILER_CLANG=1000"
+export CXXFLAGS="$CXXFLAGS -DHWY_COMPILER_CLANG=1000"
+
+$PY vendored-meson/meson/meson.py setup build \
+  --prefix=/opt/tools \
+  -Dblas=accelerate \
+  -Dlapack=accelerate \
+  -Dcpu-dispatch="max -X86_V4"
+
+#$PY vendored-meson/meson/meson.py setup builddir --prefix=/opt/tools
+
+$PY vendored-meson/meson/meson.py compile -C build
+
+#$PY vendored-meson/meson/meson.py install -C build
+## Must use pip to install or pytorch doesn't see it!
+
+$PY -m pip install build
+$PY -m build --wheel
+$PY -m pip install dist/numpy-*.whl --no-deps
+

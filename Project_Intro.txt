@@ -1,0 +1,81 @@
+I have four billion dollar laptop, and so can you!
+
+I’d like to share an interesting “Retro” Python project I’ve been working on, 
+which I find is both amazing and ridiculous at the same time, which will be 
+clear later. This project started in 1989 in San Diego when General Atomics put 
+up 25 million dollars for UCSD’s supercomputer center to acquire a Cray Y-MP 
+8/864. This was a 2.67 GFLOPs system (billion floating-point instructions per 
+second), which was in addition to the 14 million dollar X-MP/48 computer they 
+had sponsored in 1985. This earlier computer could do roughly 0.84 GFLOPs. The 
+Y-MP took up the same space as eight full-sized refrigerators, and consumed 
+120kW when running at full power. 
+
+A few years later I needed a laptop for work, which included handling some 
+machine learning projects, and ended up buying a mid-2014 MacBook Pro, which 
+had a 2.8GHz Intel Core i7-4980HQ processor, an NVIDIA GeForce GT 750M. 16GB 
+system RAM, and 2GB VRAM, all for $3100. Runs on 85W.
+
+More years pass. In 2018 Apple released a new version of macOS – 10.14 Mojave, 
+where they introduce “Dark Mode” for reduced eye strain, which also looks cool! 
+Under the hood however there was an even darker change, the support for third 
+party drivers had been removed. No more NVIDIA written graphics drivers, and 
+therefore zero CUDA support. If accelerated number crunching on macOS is 
+important, sticking with 10.13 High Sierra is the last and only option.
+
+Nearly a decade later, ChatGPT shows up and quickly becomes the most useful 
+code development accelerator available. It’s also a reflection of mankind’s 
+common wisdom, so even today if you ask it, “What version of Python should I 
+use for machine learning work?”, it will answer “Python 3.12 is the most 
+conservative choice if you depend on lots of scientific packages beyond PyTorch 
+/ ML.” Python 3.7 was the last version before macOS 10.14 was released, so that 
+“conservative” ship sailed years ago. This suggests the next question, “What 
+would it take to get Python latest (3.14.7 as of August 5th) and PyTorch with 
+full CUDA support working on macOS High Sierra?”
+
+The details are now posted on github. The short version: macOS 10.13.6, XCode 
+10.1, macports, Apple’s Command Line Developer tools (for those versions), 
+NVIDIA Web Driver 387.10.10.10.40.140, CUDA 10.1 (the last to support cuda 
+capability 3.0 hardware) , scripts to build {OpenSSL 3.6.4, Python  3.14.7, 
+numpy 2.4.6, pytorch v1.8.1 (the last to support CUDA 10.1)}, and nine code 
+patches to get everything to compile!
+
+Why is this amazing? It works great! A Python matrix multiply benchmark shows 
+this laptop can run around 94 GFLOPs on CPU and an additional 340 GFLOPs on 
+GPU! One 2014 MacBook Pro is (94 + 340) / 2.67 = 162.54 times faster than that 
+Cray Y-MP. If you had to buy that amount of processing power in 1989 it would 
+have cost well over 4 billion dollars! Upgrading the OS one more step will cost 
+you three billion 1989 dollars of processing power!
+
+So why is this ridiculous? Here are the computed GFLOP price over select years 
+in 2026 dollars:
+	1985 = 51.6 million
+	1989 = 25.2 million
+	2014 = 10 dollars
+	2025 = 13 cents
+	2026 = 22 cents
+So even with today’s insanely inflated computer parts prices, you should NOT be 
+rushing out to buy 2014 vintage NVIDIA GPU equipped Apple macOS systems, much 
+less old Cray supercomputers!!
+
+That said, if you already have one that still works, and can get it onto High 
+Sierra, and think hunting down old versions of Apple software like XCode and 
+compiling a bunch of open source packages is fun, then you can still get it to 
+do “useful” work.
+
+Good luck!
+
+Also, using the latest Python (with bug fixes and new language features) with 
+GPU accelerated pytorch works fine, in spite of ChatGPT’s popular opinion.
+
+Last summer I built a semi-portable Linux system around an AMD Ryzen 9 9950X3D, 
+96GB RAM and a GeForce RTX 5060 TI 16GB, all for around $2200. This system does 
+1880 CPU GFLOPS and 15336 GPU GFLOPS. Today that same system would cost roughly 
+{$800 GPU, $620 CPU, $270 MB (mini-itx), $1640 96GB RAM, $500 case & hd & 
+display} = $3830. 
+
+Warning: MATH! For the years (1985, 1989, 2014, 2025, 2026), here are the costs 
+(14M, 25M, 3100, 2200, 3830), the $$ conversion multipliers (3.10, 2.69, 1.41, 
+1.04, 1.0), the GFLOPs measurements (0.84, 2.67, 94 + 340 = 434, 1180 + 15336 = 
+16516, 16516 again). The equation used is {2026 price / GFLOP  = cost * 
+conversion / performance}. Yes, it’s understood a bit of hand waving is 
+included.

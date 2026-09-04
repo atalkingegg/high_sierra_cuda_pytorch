@@ -1,0 +1,47 @@
+#!/bin/bash
+
+source 0000_env
+
+## Note: for this one, sticking with bz2 source package
+
+## https://github.com/tukaani-project/xz/releases/download/v5.8.1/xz-5.8.1.tar.bz2
+
+XZ_VER=5.8.3
+
+PKG_NAME=xz-${XZ_VER}
+PKG_URL=https://github.com/tukaani-project/xz/releases/download/v${XZ_VER}/${PKG_NAME}.tar.bz2
+
+echo ${GCC_VER}
+echo ${PKG_NAME}
+echo ${TARG_INST_DIR}/bin
+
+PKG_NAME_BZ2=${PKG_NAME}.tar.bz2
+
+# Check if the file exists
+if [ ! -f "${PKG_NAME_BZ2}" ]; then
+    echo "File ${PKG_NAME_BZ2} does not exist. Attempting to download from ${PKG_URL}..."
+    rm -rf ${PKG_NAME}.tar.bz2
+    wget "${PKG_URL}"
+else
+    echo "File ${PKG_NAME_BZ2} already exists. No need to download."
+fi
+
+rm -rf xz-${XZ_VER}
+bunzip2 < xz-${XZ_VER}.tar.bz2 | tar xvf -
+cd xz-${XZ_VER}
+mkdir build && cd build
+
+#../configure --prefix=/usr/local/gcc-9.3 --enable-cxx
+#../configure --prefix=/usr/local/${GCC_VER}
+
+../configure --prefix=${TARG_INST_DIR}
+make -j ${THREADS}
+
+# sudo mkdir -p ${TARG_INST_DIR}/bin
+#sudo make install-strip
+
+make install
+
+if [[ "$RUN_TESTS" -eq 1 ]]; then
+    make check
+fi

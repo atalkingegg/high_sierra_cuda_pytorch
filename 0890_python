@@ -1,0 +1,85 @@
+#!/bin/bash
+
+source 0000_env
+
+#PYVER=3.12.12
+#PYVER=3.13.11
+
+#PYVER=3.14.4
+#PYVER=3.14.5
+PYVER=3.14.7
+## Note: numpy broken under 3.14.2, with patches work on 3.14.4
+
+
+TARXZ="Python-${PYVER}.tar.xz"
+
+if [ -f "$TARXZ" ]; then
+    echo "##### $TARXZ already exists. Skipping download."
+else
+    echo "##### $TARXZ not found. Downloading .tgz and converting..."
+    wget "https://www.python.org/ftp/python/${PYVER}/${TARXZ}" || { echo "##### Download failed"; exit 1; }
+fi
+
+export CPPFLAGS="-I${TARG_INST_DIR}/include"
+export LDFLAGS="-L${TARG_INST_DIR}/lib"
+export LD_LIBRARY_PATH=${TARG_INST_DIR}/lib:${TARG_INST_DIR}/lib64
+
+SRCDIR="Python-${PYVER}"
+
+rm -rf ${SRCDIR}
+tar -xf "$TARXZ"
+
+cd "$SRCDIR"
+
+## Linux gnu ld flag
+#export LDFLAGS="-Wl,-rpath=/opt/python-${PYVER}/lib"
+
+## For MacOS xcode ld, etc.
+#export LDFLAGS="-Wl,-rpath,/opt/python-${PYVER}/lib"
+#sed -i '' 's/-fprofile-instr-generate//g' configure
+#sed -i '' 's/-fprofile-instr-use=[^ ]*//g' configure
+## or give up using gcc
+#unset CC
+#unset CXX
+## needs cc from /usr/bin, chmod from /bin
+#export PATH=/usr/bin:/bin
+#CC=/usr/bin/clang
+#CXX=/usr/bin/clang++
+#export CPPFLAGS="-I/opt/local/include"
+#export LDFLAGS="-L/opt/local/lib"
+
+./configure --prefix=${TARG_INST_DIR} \
+  --enable-shared \
+  --with-openssl=/opt/tools \
+  --with-ensurepip=install
+ 
+#  --with-system-expat \
+#  --with-system-ffi \
+
+make clean
+make -j${THREADS}
+make install
+
+## build creates python3.14 and python3, so let's make "python"
+ln -sf python${PYVER%.*} ${TARG_INST_DIR}/bin/python
+## build creates pip3.14 and a copy pip3, let's fix this.
+rm ${TARG_INST_DIR}/bin/pip3
+ln -sf pip${PYVER%.*} ${TARG_INST_DIR}/bin/pip3
+ln -sf pip${PYVER%.*} ${TARG_INST_DIR}/bin/pip
+
+#\
+#  --enable-shared \
+#  --with-ensurepip=install
+
+  #--with-lto \
+## Not functional on xcode 10.1 builds 
+##  --enable-optimizations \
+## also needed the openssl lines.
+
+## Not recognized
+#--with-system-ffi \
+
+
+#make -j$(nproc)
+
+#sudo make altinstall

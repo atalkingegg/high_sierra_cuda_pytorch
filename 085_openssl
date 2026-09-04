@@ -1,0 +1,45 @@
+#!/bin/bash
+
+source 0000_env
+
+## https://github.com/openssl/openssl/releases/download/openssl-3.6.0/openssl-3.6.0.tar.gz
+
+#OSL_VER=3.6.2
+#OSL_VER=4.0.0
+
+OSL_VER=3.6.4
+
+PKG_NAME=openssl-${OSL_VER}
+PKG_NAME_GZ=${PKG_NAME}.tar.gz
+PKG_NAME_XZ=${PKG_NAME}.tar.xz
+PKG_URL=https://github.com/openssl/openssl/releases/download/${PKG_NAME}/${PKG_NAME_GZ}
+
+# Check if the file exists
+if [ ! -f "${PKG_NAME_XZ}" ]; then
+    echo "File ${PKG_NAME_XZ} does not exist. Attempting to download from ${PKG_URL}..."
+    wget "${PKG_URL}"
+    gunzip ${PKG_NAME_GZ}
+    xz ${PKG_NAME}.tar
+else
+    echo "File ${PKG_NAME_XZ} already exists. No need to download."
+fi
+
+rm -rf ${PKG_NAME}
+unxz < ${PKG_NAME_XZ} |tar xvf -
+
+## pre-fix lib dir missing issue
+mkdir -p ${TARG_INST_DIR}/lib
+
+cd ${PKG_NAME}
+
+mkdir build && cd build
+
+../Configure --prefix=${TARG_INST_DIR}
+
+make -j ${THREADS}
+
+make install
+
+if [[ "$RUN_TESTS" -eq 1 ]]; then
+    make check
+fi

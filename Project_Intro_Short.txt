@@ -1,0 +1,26 @@
+I have a four-billion-dollar laptop — and so can you!
+
+In 1989, General Atomics spent $25 million to put a Cray Y-MP 8/864 at UCSD’s 
+supercomputer center: eight large refrigerators’ worth, consuming 120 kW and 
+delivering 2.67 GFLOPs. Twenty-five years later I bought a mid-2014 MacBook Pro 
+for $3,100, with a 2.8 GHz Core i7 and NVIDIA GT 750M. Then Apple dropped 
+NVIDIA driver support after macOS High Sierra, effectively freezing CUDA on 
+that machine in 2017-era software. So, for a slightly ridiculous 
+retro-computing project, I decided to see just how far I could drag it into 
+modern times: the latest Python 3.14.7, NumPy 2.4.6, retro PyTorch 1.8.1, with 
+full GPU-accelerated CUDA 10.1 support. After rebuilding the software stack 
+from source and making and applying some code patches, it works!
+
+And that’s where this silly project became amazing. My old MacBook Pro 
+benchmarks at about 94 GFLOPs on its CPU plus another 340 GFLOPs on its GPU — 
+roughly 162 times (!!) the floating-point performance of that $25 million Cray 
+Y-MP. Buying that much computing power in 1989 would have cost well over $4 
+billion dollars. Of course, this does not mean you should rush out and buy 
+decade-old NVIDIA MacBooks; modern hardware makes even this comparison look 
+ridiculous. But if you already have the hardware, enjoy digging through old 
+toolchains, and occasionally wonder whether “unsupported” really means 
+“impossible,” it turns out a silly retro Python project can unlock a useful 
+four-billion-dollar supercomputing laptop!
+
+All the instructions, build scripts, and patches are now up on github.
+atalkingegg/high_sierra_cuda_pytorch
