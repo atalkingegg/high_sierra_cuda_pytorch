@@ -14,11 +14,11 @@ path to run and test everything as you go, for details see below, then launch
 the included scripts in this order:
 
 00_xz = installs xz-5.8.3
-085_openssl = installs openssl 3.6.4 tools and libraries
-0890_python = installs Python 3.14.7 and pip3
-0891x_numpy = uses git and installs numpy 2.4.6, patches one file.
-0892x_pytorch = uses git and installs pytorch v1.8.1, patches eight files.
-pytorch_test = contains a set of basic scripts to check that things are working.
+085_openssl = installs openssl 3.6.4 tools and libraries  
+0890_python = installs Python 3.14.7 and pip3  
+0891x_numpy = uses git and installs numpy 2.4.6, patches one file.  
+0892x_pytorch = uses git and installs pytorch v1.8.1, patches eight files.  
+pytorch_test = contains a set of basic scripts to check that things are working.  
 
 Once everything is working, the build area can be cleaned out as it’s not 
 needed anymore.
@@ -52,13 +52,13 @@ Notes on new installs of High Sierra:
 1. Apple seems to have removed High Sierra installers off of their apt-store 
 servers, and even archive.org doesn’t seem to have a copy. Finding a working 
 macOS 10.13 USB thumb drive installer someone made a dozen years ago might be 
-the hardest part of following this project.
+the hardest part of following this project.  
 2. The certificates on surviving USB installers have expired, so the first step 
 is to reset the clock on the system to be installed back to October 2017, after 
 it was released but well before when the certs expired. Once installed and 
 booting, the system will connect to an NTP server and be set back to the 
-current date and time.
-3. After installing, you should, and can still update your system to 10.13.6. 
+current date and time.  
+3. After installing, you should, and can still update your system to 10.13.6.   
 
 You’ll need to get XCode 10.1, the last version supported under High Sierra. 
 This is now buried on developer.apple.com but still available in their old 
